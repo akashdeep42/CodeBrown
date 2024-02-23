@@ -1,8 +1,14 @@
-import { initializeApp } from 'firebase/app';
-import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
-import { getFirestore, collection, addDoc, serverTimestamp, QuerySnapshot } from 'firebase/firestore';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect } from 'react';
+import { initializeApp } from "firebase/app";
+import { initializeAuth, getReactNativePersistence } from "firebase/auth";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  serverTimestamp,
+  QuerySnapshot,
+} from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect } from "react";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBth5BPdFF7zR7utwzEU5aqyNKusBDjTSs",
@@ -11,7 +17,7 @@ const firebaseConfig = {
   storageBucket: "cheesytracker.appspot.com",
   messagingSenderId: "413164372288",
   appId: "1:413164372288:web:55f70c80c74944d2e03aa5",
-  measurementId: "G-5G4TY0PPZW"
+  measurementId: "G-5G4TY0PPZW",
 };
 
 // Initialize Firebase
@@ -21,9 +27,9 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 // Create ref for Driver collection
-const colRef = collection(db, 'DRIVERS');
+const colRef = collection(db, "DRIVERS");
 // reference to orders collection
-const orderRef = collection(db, 'ORDERS');
+const orderRef = collection(db, "ORDERS");
 // realtime get function
 // useEffect(() => {
 //   const q = query(
@@ -42,7 +48,7 @@ const orderRef = collection(db, 'ORDERS');
 
 // Initialize Firebase Auth with AsyncStorage for persistence
 initializeAuth(app, {
-  persistence: getReactNativePersistence(AsyncStorage)
+  persistence: getReactNativePersistence(AsyncStorage),
 });
 
 // Function to save location data to Firestore
@@ -52,14 +58,12 @@ const saveLocationData = async (userId, latitude, longitude) => {
       userId,
       latitude,
       longitude,
-      timestamp: serverTimestamp()
+      timestamp: serverTimestamp(),
     });
     console.log("Location saved successfully");
   } catch (error) {
     console.error("Error saving location: ", error);
   }
 };
-
-
 
 export { db, app, saveLocationData };

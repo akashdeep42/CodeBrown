@@ -1,28 +1,30 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, /*Dimensions*/ } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import { getAuth, signOut } from 'firebase/auth';
-import * as Location from 'expo-location';
-import { MaterialIcons } from '@expo/vector-icons';
-import { collection, addDoc, doc, getDoc } from 'firebase/firestore';
-import { db } from './firebaseConfig';
-import { PropTypes } from 'prop-types';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Dimensions,
+} from "react-native";
+import MapView, { Marker } from "react-native-maps";
+import { getAuth, signOut } from "firebase/auth";
+import * as Location from "expo-location";
+import { MaterialIcons } from "@expo/vector-icons";
+import { collection, addDoc } from "firebase/firestore";
+import { db } from "./firebaseConfig";
 
-const Dashboard = ({ navigation, route }) => {
-  const [role, setRole] = useState('');
+const Dashboard = ({ navigation }) => {
   const [userLocation, setUserLocation] = useState(null);
   const mapViewRef = useRef(null);
   const locationUpdateInterval = useRef(null);
-  const [isDropdownVisible, setIsDropdownVisible] = useState(false); // Added state for dropdown visibility
 
   const auth = getAuth();
   const userId = auth.currentUser ? auth.currentUser.uid : null;
-  const user = auth.currentUser;  // ask about this***^
 
   const getUserLocation = async () => {
     let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      console.error('Location permission denied');
+    if (status !== "granted") {
+      console.error("Location permission denied");
       return;
     }
 
@@ -37,10 +39,11 @@ const Dashboard = ({ navigation, route }) => {
     };
 
     try {
-      await addDoc(collection(db, 'locations'), locationData);
-      console.log('Location data recorded');
+      const locationsRef = collection(db, "locations");
+      await addDoc(locationsRef, locationData);
+      console.log("Location data recorded");
     } catch (error) {
-      console.error('Error recording location data: ', error);
+      console.error("Error recording location data: ", error);
     }
   };
 
@@ -55,16 +58,22 @@ const Dashboard = ({ navigation, route }) => {
     }
   };
 
-  const handleSignOut = () => {
-    signOut(auth).then(() => {
-      navigation.navigate('SignIn');
-    }).catch((error) => {
-      console.error('Sign out error:', error);
-    });
+  const navigateToContactsScreen = () => {
+    navigation.navigate("ContactsScreen");
   };
 
-  const toggleDropdown = () => {
-    setIsDropdownVisible(!isDropdownVisible);
+  const handleOrderButton = () => {
+    navigation.navigate("TakeOrderScreen");
+  };
+
+  const handleSignOut = () => {
+    signOut(auth)
+      .then(() => {
+        navigation.navigate("SignIn");
+      })
+      .catch((error) => {
+        console.error("Sign out error:", error);
+      });
   };
 
   useEffect(() => {
@@ -78,23 +87,6 @@ const Dashboard = ({ navigation, route }) => {
     };
   }, []);
 
-  // Get user's "role" from firestore
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        // Get the doc
-        const docRef = doc(db, 'USERS', user.email);  
-        const docSnap = await getDoc(docRef);         
-        // Get each field
-        setRole(docSnap.data().role);
-      } catch (error) {
-        console.error('Error fetching document:', error);
-        console.log(role);
-      }
-    };
-    fetchUserData();
-  }, []);  // Empty dependency array means this effect runs once after the initial render
-
   return (
     <View style={styles.container}>
       <MapView
@@ -107,7 +99,9 @@ const Dashboard = ({ navigation, route }) => {
           longitudeDelta: 0.0421,
         }}
         showsUserLocation={true}
-        onUserLocationChange={(event) => setUserLocation(event.nativeEvent.coordinate)}
+        onUserLocationChange={(event) =>
+          setUserLocation(event.nativeEvent.coordinate)
+        }
       >
         {userLocation && (
           <Marker
@@ -121,36 +115,43 @@ const Dashboard = ({ navigation, route }) => {
         )}
       </MapView>
 
-      <TouchableOpacity style={styles.menuButton} onPress={toggleDropdown}>
-        <MaterialIcons name="menu" size={24} color="black" />
+      <TouchableOpacity
+        style={styles.centerLocationButton}
+        onPress={centerOnUserLocation}
+      >
+        <MaterialIcons name="local-pizza" size={24} color="#3498db" />
       </TouchableOpacity>
 
-      {isDropdownVisible && (
-        <View style={styles.dropdown}>
-          <TouchableOpacity style={styles.dropdownItem} onPress={() => navigation.navigate('ContactsScreen')}>
-            <Text style={styles.dropdownItemText}>Contacts</Text>
-          </TouchableOpacity>
+      <View style={styles.bottomButtons}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={navigateToContactsScreen}
+        >
+          <Text style={styles.buttonText}>Contacts</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity style={styles.dropdownItem} onPress={() => navigation.navigate('UserProfileScreen')}>
-            <Text style={styles.dropdownItemText}>Profile</Text>
-          </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleSignOut}>
+          <Text style={styles.buttonText}>Sign Out</Text>
+        </TouchableOpacity>
 
-          {role === 'manager' && (
-            <TouchableOpacity style={styles.dropdownItem} onPress={() => navigation.navigate('LocationHistoryScreen', { userId })}>
-              <Text style={styles.dropdownItemText}>Log</Text>
-            </TouchableOpacity>
-          )}
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() =>
+            userId && navigation.navigate("LocationHistoryScreen", { userId })
+          }
+        >
+          <Text style={styles.buttonText}>Log</Text>
+        </TouchableOpacity>
 
-          <TouchableOpacity style={styles.dropdownItem} onPress={handleSignOut}>
-            <Text style={styles.dropdownItemText}>Sign Out</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+        <TouchableOpacity style={styles.button} onPress={handleOrderButton}>
+          <Text style={styles.buttonText}>Take Order</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
 
-//const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {
@@ -159,40 +160,62 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
-  menuButton: {
-    position: 'absolute',
-    top: '1%',
-    left: '1%',
-    padding: 10,
-    backgroundColor: '#fff',
-    borderRadius: 30,
-    zIndex: 1,
+  centerLocationButton: {
+    backgroundColor: "#fff",
+    padding: 15,
+    borderRadius: 50,
+    position: "absolute",
+    top: "1%",
+    right: "1%",
+    elevation: 5,
   },
-  dropdown: {
-    position: 'absolute',
-    top: 50,
-    left: 10,
-    backgroundColor: '#fff',
+  button: {
+    flex: 1,
+    height: 50,
+    backgroundColor: "#e74c3c",
+    margin: 5,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: width * 0.03,
+    textAlign: "center",
+  },
+  signOutButton: {
+    height: 50,
+    backgroundColor: "#e74c3c",
+    padding: 15,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  historyButton: {
+    height: 50,
+    backgroundColor: "#e74c3c",
     padding: 10,
     borderRadius: 5,
-    zIndex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  dropdownItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+  orderButton: {
+    height: 50,
+    backgroundColor: "#e74c3c",
+    padding: 15,
+    borderRadius: 5,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  dropdownItemText: {
-    fontSize: 16,
+  bottomButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    position: "absolute",
+    bottom: 0,
+    left: 10,
+    right: 10,
   },
-  // Feel free to add or modify styles as needed
 });
-
-// fixed ['navigation.navigate' is missing in props validationeslintreact/prop-types] error
-Dashboard.propTypes = {
-  navigation: PropTypes.shape({
-    navigate: PropTypes.func.isRequired,
-  }).isRequired,
-};
 
 export default Dashboard;

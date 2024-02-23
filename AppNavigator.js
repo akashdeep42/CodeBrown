@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import SignIn from './SignIn';
@@ -8,10 +7,8 @@ import forgotpassword from './forgotpassword';
 import Dashboard from './Dashboard';
 import ContactsScreen from './ContactsScreen';
 import ChatScreen from './ChatScreen';
-import LocationHistoryScreen from './LocationHistoryScreen';
+import LocationHistoryScreen from './LocationHistoryScreen'; // Import the new screen
 import TakeOrderScreen from './TakeOrderScreen';
-import UserProfileScreen from './UserProfileScreen';  
-import EditProfileScreen from './EditProfileScreen';
 
 const Stack = createStackNavigator();
 
@@ -26,8 +23,6 @@ function AppNavigator({ isAuthenticated }) {
             <Stack.Screen name="ChatScreen" component={ChatScreen} />
             <Stack.Screen name="LocationHistoryScreen" component={LocationHistoryScreen} />
             <Stack.Screen name="TakeOrderScreen" component={TakeOrderScreen} />
-            <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
-            <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} />
           </>
         ) : (
           <>
@@ -40,10 +35,5 @@ function AppNavigator({ isAuthenticated }) {
     </NavigationContainer>
   );
 }
-
-// 2/20 - fixed the red line under "isAuthenticated"
-AppNavigator.propTypes = {
-  isAuthenticated: PropTypes.bool.isRequired,
-};
 
 export default AppNavigator;
